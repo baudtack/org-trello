@@ -63,6 +63,7 @@
 (require 'timer)
 (require 's)
 (require 'kv)
+(require 'font-lock)
 
 
 
@@ -267,10 +268,11 @@ To change such level, add this to your init.el file: (setq *orgtrello-log/level*
 (defun orgtrello-cbx/--write-properties-at-point (pt properties) "Given the new properties, update the current entry."
   (save-excursion
     (goto-char pt)
-    (let ((updated-checkbox-str (orgtrello-cbx/--update-properties (orgtrello-cbx/--read-checkbox!) properties)))
+    (let* ((updated-checkbox-str (orgtrello-cbx/--update-properties (orgtrello-cbx/--read-checkbox!) properties))
+           (end (length updated-checkbox-str)))
       (beginning-of-line)
       (kill-line)
-      (insert updated-checkbox-str)
+      (insert (add-text-properties 0 end '(invisible org-link) updated-checkbox-str)) ;; make the properties invisible
       updated-checkbox-str)))
 
 (defun orgtrello-cbx/--key-to-search (key) "Search the key key as a symbol"
@@ -943,6 +945,8 @@ This is a list with the following elements:
 
 (defun orgtrello-proxy/--compute-pattern-search-from-marker (marker) "Given a marker, compute the pattern to look for in the file."
   marker)
+
+(defvar *ORGTRELLO-STATE-SEARCH-IGNORE-INVISIBLE nil)
 
 (defun orgtrello-proxy/--getting-back-to-marker (marker) "Given a marker, getting back to marker function. Move the cursor position."
   (goto-char (point-min))
@@ -2752,9 +2756,14 @@ refresh(\"/proxy/admin/entities/current/\", '#current-action');
 
 (add-hook 'org-trello-mode-on-hook
           (lambda ()
+            ;; require font-lock-mode
+            (font-lock-mode t)
+            ;; we do not ignore invisible text
+            (setq *ORGTRELLO-STATE-SEARCH-IGNORE-INVISIBLE line-move-ignore-invisible)
+            (setq line-move-ignore-invisible nil)
             ;; hightlight the properties of the checkboxes
-            (font-lock-add-keywords 'org-mode '((":PROPERTIES:" 0 font-lock-keyword-face t)))
-            (font-lock-add-keywords 'org-mode '((": {\"orgtrello-id\":.*}" 0 font-lock-comment-face t)))
+            ;; (font-lock-add-keywords 'org-mode '((":PROPERTIES:" 0 font-lock-keyword-face t)))
+            ;; (font-lock-add-keywords 'org-mode '((": {\"orgtrello-id\":.*}" 0 font-lock-comment-face t)))
             ;; start the proxy
             (orgtrello-proxy/start)
             ;; installing hooks
@@ -2764,9 +2773,11 @@ refresh(\"/proxy/admin/entities/current/\", '#current-action');
 
 (add-hook 'org-trello-mode-off-hook
           (lambda ()
+            ;; we do not ignore invisible text
+            (setq line-move-ignore-invisible *ORGTRELLO-STATE-SEARCH-IGNORE-INVISIBLE)
             ;; remove the highlight
-            (font-lock-remove-keywords 'org-mode '((":PROPERTIES:" 0 font-lock-keyword-face t)))
-            (font-lock-remove-keywords 'org-mode '((": {\"orgtrello-id\":.*}" 0 font-lock-comment-face t)))
+            ;; (font-lock-remove-keywords 'org-mode '((":PROPERTIES:" 0 font-lock-keyword-face t)))
+            ;; (font-lock-remove-keywords 'org-mode '((": {\"orgtrello-id\":.*}" 0 font-lock-comment-face t)))
             ;; stop the proxy
             (orgtrello-proxy/stop)
             ;; uninstalling hooks

@@ -16,9 +16,11 @@
 #+title: dummy sample to sync with trello
 #+author: Antoine R. Dumont
 
-* TODO Joy of FUN(ctional) LANGUAGES
-- [-] LISP family
-  - [X] Emacs-Lisp
+* TODO Joy of FUN(ctional) LANGUAGES (re-search-forward "\"orgtrello-id\"")
+:PROPERTIES:
+:orgtrello-id: 52b569ea0edf7e64300053da
+:END:
+  - [X] Emacs-Lisp :PROPERTIES: {"orgtrello-id": "52b569ea0edf7e64300053da"}
   - [X] Common-Lisp
   - [ ] Scheme
   - [X] Clojure
